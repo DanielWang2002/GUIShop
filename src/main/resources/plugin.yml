@@ -1,0 +1,11 @@
+name: Guishop
+version: ${project.version}
+main: mc.danielwang.guishop.Guishop
+api-version: 1.16
+authors: [ DanielWang ]
+description: open server shop for player (gui)
+depend:
+  - Vault
+commands:
+  gs:
+    description: GUIShop
