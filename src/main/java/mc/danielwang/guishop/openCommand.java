@@ -10,45 +10,74 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.yaml.snakeyaml.tokens.DirectiveToken;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class openCommand implements CommandExecutor {
-    public String Prefix = ChatColor.GOLD + "伺服器商城 >> " + ChatColor.WHITE;
+
+    private Guishop gs = Guishop.getPlugin();
+    public String Prefix = ChatColor.translateAlternateColorCodes('&',gs.getConfig().getString("message.prefix"));
+    public String Previous_page = ChatColor.RED + gs.getConfig().getString("message.previous_page");
     public ItemStack Back = new ItemStack(Material.FEATHER);//返回鍵
     public ItemMeta Back_Meta = Back.getItemMeta();
+    public String buy_shop_name = ChatColor.DARK_GREEN + gs.getConfig().getString("message.buy_shop_name");
+    public String sell_shop_name = ChatColor.DARK_RED + gs.getConfig().getString("message.sell_shop_name");
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        Player player = (Player) sender;
-        Back_Meta.setDisplayName(ChatColor.RED + "返回上一頁");
-        Back.setItemMeta(Back_Meta);
-        if (args.length == 0){
-            player.sendMessage(ChatColor.YELLOW + "----------" + ChatColor.RED + "伺服器商城 指令小幫手" + ChatColor.YELLOW + "----------");
-            player.sendMessage(ChatColor.AQUA + "/gs open " + ChatColor.WHITE + "開啟商城介面");
-        }else if (args.length == 1){
-            if (args[0].equalsIgnoreCase("open") && sender instanceof Player){
-                openBuySellGUI(player);
-            }else{
-                player.sendMessage(ChatColor.RED + "無效參數 請使用/gs 查詢可用指令");
+        if (sender instanceof Player){
+            Player player = (Player) sender;
+            Back_Meta.setDisplayName(Previous_page);
+            Back.setItemMeta(Back_Meta);
+            if (args.length == 0){
+                List<String> ch = gs.getConfig().getStringList("message.command_helper");
+                for (String s : ch){
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&',s));
+                }
+            }else if (args.length == 1){
+                if (args[0].equalsIgnoreCase("open") && sender instanceof Player){
+                    openBuySellGUI(player);
+                }else if (args[0].equalsIgnoreCase("reload")) {
+                    for (String msg : gs.getConfig().getStringList("message.reload")) {
+                        player.sendMessage(Prefix + ChatColor.translateAlternateColorCodes('&', msg));
+                    }
+                    gs.reloadConfig();
+                }else if (args[0].equalsIgnoreCase("help")){
+                    List<String> ch = gs.getConfig().getStringList("message.command_helper");
+                    for (String s : ch){
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&',s));
+                    }
+                }else{
+                    player.sendMessage(ChatColor.RED + gs.getConfig().getString("message.non-command"));
+                }
+            }
+        }else{
+            try {
+                if (args[0].equalsIgnoreCase("reload")){
+                    for (String msg : gs.getConfig().getStringList("message.reload")){
+                        sender.sendMessage(Prefix + ChatColor.translateAlternateColorCodes('&',msg));
+                    }
+                    gs.reloadConfig();
+                }
+            }catch (Exception e){
+                sender.sendMessage(Prefix + ChatColor.RED + " Console can't use this command!");
             }
         }
+
         return false;
     }
 
     public void openBuySellGUI(Player player){
-        Back_Meta.setDisplayName(ChatColor.RED + "返回上一頁");
-        Back.setItemMeta(Back_Meta);
-        Inventory Inv = Bukkit.createInventory(null,9,ChatColor.DARK_RED + "伺服器商城");
+        Inventory Inv = Bukkit.createInventory(null,9,ChatColor.translateAlternateColorCodes('&',gs.getConfig().getString("message.home_page_name")));
         ItemStack Buy = new ItemStack(Material.GREEN_WOOL);
         ItemStack Sell = new ItemStack(Material.RED_WOOL);
         ItemMeta BuyMeta = Buy.getItemMeta();
         ItemMeta SellMeta = Sell.getItemMeta();
 
-        BuyMeta.setDisplayName(ChatColor.GREEN + "購買");
-        SellMeta.setDisplayName(ChatColor.RED + "出售");
+        BuyMeta.setDisplayName(ChatColor.DARK_GREEN + gs.getConfig().getString("message.buy_shop_name"));
+        SellMeta.setDisplayName(ChatColor.DARK_RED + gs.getConfig().getString("message.sell_shop_name"));
         Buy.setItemMeta(BuyMeta);
         Sell.setItemMeta(SellMeta);
 
@@ -58,66 +87,108 @@ public class openCommand implements CommandExecutor {
         player.openInventory(Inv);
     }
     public void openBuyGUI(Player player){
-        Back_Meta.setDisplayName(ChatColor.RED + "返回上一頁");
+        Back_Meta.setDisplayName(Previous_page);
         Back.setItemMeta(Back_Meta);
-        Inventory Buy_Inv = Bukkit.createInventory(null,27,ChatColor.DARK_GREEN + "購買");
-        ItemStack Cobblestone = new ItemStack(Material.COBBLESTONE);
-        ItemStack Dirt = new ItemStack(Material.DIRT);
-        ItemMeta Cobblestone_Meta = Cobblestone.getItemMeta();
-        ItemMeta Dirt_Meta = Dirt.getItemMeta();
+        Inventory Buy_Inv = Bukkit.createInventory(null,Integer.parseInt(gs.getConfig().getString("message.buy_shop_size")),buy_shop_name);
+        AtomicInteger position = new AtomicInteger();
 
-        ArrayList<String> Cobblestone_Lore = new ArrayList<>();
-        Cobblestone_Lore.add(ChatColor.GREEN + "購買價 " + ChatColor.YELLOW + "1" + ChatColor.GREEN + " 遊戲幣");
-        Cobblestone_Lore.add("");
-        Cobblestone_Lore.add(ChatColor.GOLD + "左鍵 購買 1 個");
-        Cobblestone_Lore.add(ChatColor.GOLD + "右鍵 購買 10 個");
-        Cobblestone_Meta.setLore(Cobblestone_Lore);
+        gs.getConfig().getConfigurationSection("buyitems").getKeys(false).forEach(key -> {
 
-        ArrayList<String> Dirt_Lore = new ArrayList<>();
-        Dirt_Lore.add(ChatColor.GREEN + "購買價 " + ChatColor.YELLOW + "2" + ChatColor.GREEN + " 遊戲幣");
-        Dirt_Lore.add("");
-        Dirt_Lore.add(ChatColor.GOLD + "左鍵 購買 1 個");
-        Dirt_Lore.add(ChatColor.GOLD + "右鍵 購買 10 個");
-        Dirt_Meta.setLore(Dirt_Lore);
+            ArrayList<String>  Items = new ArrayList<>();
+            List<String> item_Lore = gs.getConfig().getStringList("message.buy_item_lore");
+            ItemStack item = null;
+            ItemMeta item_meta = null;
 
-        Cobblestone.setItemMeta(Cobblestone_Meta);
-        Dirt.setItemMeta(Dirt_Meta);
+            gs.getConfig().getConfigurationSection("buyitems").getConfigurationSection(key).getKeys(true).forEach(key2 -> {
+                Items.add(gs.getConfig().getString("buyitems." + key + "." + key2));
+            });
+            item = new ItemStack(Material.matchMaterial(Items.get(0)));
+            String price = Items.get(1);
+            String Lclickamount = Items.get(2);
+            String Rclickamount = Items.get(3);
 
-        Buy_Inv.setItem(0,Cobblestone);
-        Buy_Inv.setItem(1,Dirt);
-        Buy_Inv.setItem(26,Back);
+            if (item != null){
+                item_meta = item.getItemMeta();
+
+                for(String s : item_Lore){
+                    if (item_Lore.indexOf(s) == item_Lore.size()-1 || item_Lore.indexOf(s) == item_Lore.size()-2){ //last 2 line
+                        item_Lore.set(item_Lore.indexOf(s),ChatColor.translateAlternateColorCodes('&',ChatColor.GOLD + s)
+                                .replace("%price%",ChatColor.YELLOW + price + ChatColor.GREEN)
+                                .replace("%Lclickamount%",Lclickamount)
+                                .replace("%Rclickamount%",Rclickamount));
+                    }else{
+                        item_Lore.set(item_Lore.indexOf(s),ChatColor.translateAlternateColorCodes('&',ChatColor.GREEN + s)
+                                .replace("%price%",ChatColor.YELLOW + price + ChatColor.GREEN)
+                                .replace("%Lclickamount%",Lclickamount)
+                                .replace("%Rclickamount%",Rclickamount));
+                    }
+                }
+
+                item_meta.setLore(item_Lore);
+                item.setItemMeta(item_meta);
+            }else{
+                player.sendMessage(Prefix + ChatColor.RED + gs.getConfig().getString("material_error"));
+            }
+
+            Buy_Inv.setItem(position.get(),item);
+            position.getAndAdd(1);
+
+        });
+
+        Buy_Inv.setItem(Integer.parseInt(gs.getConfig().getString("message.buy_shop_size"))-1,Back);
 
         player.openInventory(Buy_Inv);
     }
     public void openSellGUI(Player player){
-        Back_Meta.setDisplayName(ChatColor.RED + "返回上一頁");
+        Back_Meta.setDisplayName(Previous_page);
         Back.setItemMeta(Back_Meta);
-        Inventory Sell_Inv = Bukkit.createInventory(null,27,ChatColor.DARK_GREEN + "出售");
-        ItemStack Oak_planks = new ItemStack(Material.OAK_PLANKS);
-        ItemStack Diamond = new ItemStack(Material.DIAMOND);
-        ItemMeta Oak_planks_Meta = Oak_planks.getItemMeta();
-        ItemMeta Diamond_Meta = Diamond.getItemMeta();
+        Inventory Sell_Inv = Bukkit.createInventory(null,Integer.parseInt(gs.getConfig().getString("message.sell_shop_size")),sell_shop_name);
+        AtomicInteger position = new AtomicInteger();
 
-        ArrayList<String> Oak_planks_Lore = new ArrayList<>();
-        Oak_planks_Lore.add(ChatColor.GREEN + "出售價 " + ChatColor.YELLOW + "1" + ChatColor.GREEN + " 遊戲幣");
-        Oak_planks_Lore.add("");
-        Oak_planks_Lore.add(ChatColor.GOLD + "左鍵 出售 1 個");
-        Oak_planks_Lore.add(ChatColor.GOLD + "右鍵 出售 10 個");
-        Oak_planks_Meta.setLore(Oak_planks_Lore);
+        gs.getConfig().getConfigurationSection("sellitems").getKeys(false).forEach(key -> {
 
-        ArrayList<String> Diamond_Lore = new ArrayList<>();
-        Diamond_Lore.add(ChatColor.GREEN + "出售 " + ChatColor.YELLOW + "2" + ChatColor.GREEN + " 遊戲幣");
-        Diamond_Lore.add("");
-        Diamond_Lore.add(ChatColor.GOLD + "左鍵 出售 1 個");
-        Diamond_Lore.add(ChatColor.GOLD + "右鍵 出售 10 個");
-        Diamond_Meta.setLore(Diamond_Lore);
+            ArrayList<String>  Items = new ArrayList<>();
+            List<String> item_Lore = gs.getConfig().getStringList("message.sell_item_lore");
+            ItemStack item = null;
+            ItemMeta item_meta = null;
 
-        Oak_planks.setItemMeta(Oak_planks_Meta);
-        Diamond.setItemMeta(Diamond_Meta);
+            gs.getConfig().getConfigurationSection("sellitems").getConfigurationSection(key).getKeys(true).forEach(key2 -> {
+                Items.add(gs.getConfig().getString("sellitems." + key + "." + key2));
+            });
 
-        Sell_Inv.setItem(0,Oak_planks);
-        Sell_Inv.setItem(1,Diamond);
-        Sell_Inv.setItem(26,Back);
+            item = new ItemStack(Material.matchMaterial(Items.get(0)));
+            String price = Items.get(1);
+            String Lclickamount = Items.get(2);
+            String Rclickamount = Items.get(3);
+
+            if (item != null){
+                item_meta = item.getItemMeta();
+
+                for(String s : item_Lore){
+                    if (item_Lore.indexOf(s) == item_Lore.size()-1 || item_Lore.indexOf(s) == item_Lore.size()-2){ //last 2 line
+                        item_Lore.set(item_Lore.indexOf(s),ChatColor.translateAlternateColorCodes('&',ChatColor.GOLD + s)
+                                .replace("%price%",ChatColor.YELLOW + price + ChatColor.RED)
+                                .replace("%Lclickamount%",Lclickamount)
+                                .replace("%Rclickamount%",Rclickamount));
+                    }else{
+                        item_Lore.set(item_Lore.indexOf(s),ChatColor.translateAlternateColorCodes('&',ChatColor.RED + s)
+                                .replace("%price%",ChatColor.YELLOW + price + ChatColor.RED)
+                                .replace("%Lclickamount%",Lclickamount)
+                                .replace("%Rclickamount%",Rclickamount));
+                    }
+                }
+
+                item_meta.setLore(item_Lore);
+                item.setItemMeta(item_meta);
+            }else{
+                player.sendMessage(Prefix + ChatColor.RED + gs.getConfig().getString("message.material_error"));
+            }
+
+            Sell_Inv.setItem(position.get(),item);
+            position.getAndAdd(1);
+
+        });
+        Sell_Inv.setItem(Integer.parseInt(gs.getConfig().getString("message.sell_shop_size"))-1,Back);
 
         player.openInventory(Sell_Inv);
     }

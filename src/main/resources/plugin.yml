@@ -6,6 +6,7 @@ authors: [ DanielWang ]
 description: open server shop for player (gui)
 depend:
   - Vault
+  - LocaleLib
 commands:
   gs:
     description: GUIShop

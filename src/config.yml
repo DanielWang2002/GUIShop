@@ -1,0 +1,75 @@
+message:
+  reload:
+    - "&a&lReloading plugin..."
+    - "&c&lGUIShop reload complete!"
+  prefix: "&6Server Shop >>&r"
+  previous_page: "Previous Page"
+  command_helper:
+    - "&e----------&cGUIShop Helper&e----------"
+    - "&b/gs open &fopen the shop interface"
+    - "&b/gs reload &freload config.yml"
+  non-command: "invalid command Usage:/gs help looking for available commands"
+  material_errer: "Material error! please check config.yml"
+  home_page_name: "&c&lServer Shop"
+  buy_shop_name: "Buy"
+  buy_shop_size: 36
+  sell_shop_name: "Sell"
+  sell_shop_size: 36
+  buy_item_lore:
+    - "Purchase price %price% Coin"
+    - ""
+    - "Left-Click to buy %Lclickamount%"
+    - "Right-Click to buy %Rclickamount%"
+  sell_item_lore:
+    - "Selling price %price% &cCoin"
+    - ""
+    - "Left-Click to sell %Lclickamount%"
+    - "Right-Click to sell %Rclickamount%"
+  non-enough_money: "You don't have enough money to buy!"
+  non-enough_item: "You don't have enough %material% to sell!"
+  purchased_message: "Purchased %amount% %material% cost %price% Coin"
+  sold_message: "Sold %amount% %material% gain %price% Coin"
+
+buyitems:
+  item1:
+    material: STONE
+    price: 1
+    leftclickamount: 1
+    rightclickamount: 10
+  item2:
+    material: DIAMOND
+    price: 5
+    leftclickamount: 2
+    rightclickamount: 15
+  item3:
+    material: OAK_PLANKS
+    price: 10
+    leftclickamount: 3
+    rightclickamount: 5
+  aaaa87:
+    material: DIAMOND_SWORD
+    price: 500
+    leftclickamount: 1
+    rightclickamount: 5
+  test1:
+    material: COBBLESTONE
+    price: 1
+    leftclickamount: 1
+    rightclickamount: 10
+
+sellitems:
+  item1:
+    material: WHITE_WOOL
+    price: 1
+    leftclickamount: 1
+    rightclickamount: 10
+  item2:
+    material: IRON_BLOCK
+    price: 5
+    leftclickamount: 2
+    rightclickamount: 15
+  item3:
+    material: GLOWSTONE
+    price: 10
+    leftclickamount: 3
+    rightclickamount: 5
